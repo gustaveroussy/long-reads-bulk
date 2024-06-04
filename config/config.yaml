@@ -1,0 +1,34 @@
+# General pipeline options
+max_threads: 20
+
+# Input parameters
+input_format: bam #fastq, pod5, bam (aligned bam), ubam (unaligned bam)
+variant_calling_mode: germline #germline or somatic
+
+# Select which parts of the pipeline should be run
+steps:
+  bam_qc: true
+  fastq_qc: false
+  snv_calling: true
+  sv_calling: true
+  phasing: true
+
+# Path to design file
+design: design.tsv
+
+# Genome information
+reference:
+  genome_name: GRCh38.109
+  genome: 
+  dbsnp: /mnt/beegfs/database/bioinfo/Index_DB/dbNSFP/4.1/GRCh38/dbNSFP4.1a.txt.gz
+  clinvar: /mnt/beegfs/database/bioinfo/Index_DB/ClinVar/GRCh38/clinvar_20230710.vcf.gz
+
+# Clair3 parameters
+clair3:
+  # Latest R10 model from Rerio for Dorado SUP / downloaded on 2024-02-25
+  model: /mnt/beegfs/userdata/n_rabearivelo/rerio/clair3_models/r1041_e82_400bps_sup_v430
+
+# ClairS parameters
+clairs:
+  singularity: /mnt/beegfs/pipelines/wgs_long_reads_pipeline/envs/singularity/clairs_latest.sif
+  model: ont_r10_dorado_sup_5khz
