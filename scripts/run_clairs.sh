@@ -21,8 +21,6 @@ PLATFORM="ont_r10_dorado_sup_5khz" # options: {ont_r10_dorado_sup_4khz, ont_r10_
 BAM_PATH="${WDIR}/data_output/somatic_variant_calling/concat_chr"
 REF="/mnt/beegfs/userdata/n_rabearivelo/references/Ensembl/GRCh38.109"
 
-TMP="/mnt/beegfs/scratch/n_rabearivelo/tmp/"
-
 OUTPUT_DIR="${WDIR}/data_output/somatic_variant_calling/SNV_calling/"
 
 # Create output directory
@@ -32,7 +30,7 @@ mkdir -p ${OUTPUT_DIR}
 module load singularity
 
 singularity exec \
-  -B ${WDIR},${BAM_PATH},${REF},${OUTPUT_DIR},${TMP} \
+  -B ${WDIR},${BAM_PATH},${REF},${OUTPUT_DIR} \
   /mnt/beegfs/userdata/n_rabearivelo/containers/clairs_latest.sif \
   /opt/bin/run_clairs \
   --tumor_bam_fn ${BAM_PATH}/WM99_CD19_all_chr_concat_filtered_sorted.bam \
