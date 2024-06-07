@@ -1,0 +1,17 @@
+intro_text: False
+report_header_info:
+  - Contact E-mail: "bigr@gustaveroussy.fr"
+  - Application Type: "Nanopore Long read DNA-seq"
+  - Sequencing Platform: "PromethION 48"
+
+top_modules:
+  - "nanostat"
+  - "qualimap"
+  - "mosdepth"
+  
+custom_logo: "/mnt/beegfs/pipelines/long-reads-bulk/v0_test/images/bigr_ContourBlanc_96dpi_100x100.png"
+custom_logo_title: "Bioinformatics Core Facility - Gustave Roussy"
+
+software_versions:
+  nanostat: "1.42.0"
+  qualimap: "2.3"
