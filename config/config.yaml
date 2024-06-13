@@ -3,7 +3,7 @@ max_threads: 20
 
 # Input parameters
 input_format: bam #fastq, pod5, bam (aligned bam), ubam (unaligned bam)
-variant_calling_mode: germline #germline or somatic
+variant_calling_mode: somatic #germline or somatic
 
 # Select which parts of the pipeline should be run
 steps:
@@ -14,19 +14,23 @@ steps:
   phasing: true
 
 # Path to design file
-design: design.tsv
+design: /mnt/beegfs/userdata/m_aglave/long-reads-bulk/test/script/design_bam_somatic.tsv
 
 # Genome information
-reference:
+references:
   genome_name: GRCh38.109
-  genome: 
+  genome: /mnt/beegfs/database/bioinfo/Index_DB/Fasta/Ensembl/GRCh38.109/homo_sapiens.GRCh38.109.fasta
+  minimap2_index: /mnt/beegfs/database/bioinfo/Index_DB/Fasta/Ensembl/GRCh38.109/homo_sapiens.GRCh38.109.mmi
   dbsnp: /mnt/beegfs/database/bioinfo/Index_DB/dbNSFP/4.1/GRCh38/dbNSFP4.1a.txt.gz
   clinvar: /mnt/beegfs/database/bioinfo/Index_DB/ClinVar/GRCh38/clinvar_20230710.vcf.gz
 
 # Clair3 parameters
 clair3:
   # Latest R10 model from Rerio for Dorado SUP / downloaded on 2024-02-25
-  model: /mnt/beegfs/userdata/n_rabearivelo/rerio/clair3_models/r1041_e82_400bps_sup_v430
+  model: ["/mnt/beegfs/userdata/n_rabearivelo/rerio/clair3_models/r1041_e82_400bps_sup_v430"]
+
+snpsift:
+  filters: ["(FILTER = 'PASS')", "( QUAL >= 10 )", "( QUAL >= 15 )"]
 
 # ClairS parameters
 clairs:
