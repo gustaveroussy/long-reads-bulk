@@ -9,18 +9,28 @@ The pipeline is localized here: /mnt/beegfs/pipelines/bigr_long-reads_bulk/<vers
 
 ### Installation outside GR or for new version
 #### Download pipeline
+```
 cd  /mnt/beegfs/pipelines/big_long-reads_bulk/
 git clone https://github.com/gustaveroussy/long-reads-bulk.git 1.0.0
+```
 #### Download environments
+```
 source /mnt/beegfs/software/miniconda/24.3.0/etc/profile.d/conda.sh
 conda create --prefix="/mnt/beegfs/userdata/m_aglave/.environnement_conda/git_lfs" git-lfs
 conda activate /mnt/beegfs/userdata/m_aglave/.environnement_conda/git_lfs
 cd 1.0.0
 git lfs install
 git lfs pull
+```
+#### Install snakemake environment
+```
+source /mnt/beegfs/software/miniconda/24.3.0/etc/profile.d/conda.sh
+conda env create -f /mnt/beegfs/pipelines/rna-editing/1.0.0/envs/conda/snakemake.yaml --prefix=/mnt/beegfs/pipelines/rna-editing/1.0.0/envs/conda/snakemake -y
+```
 
 ## Using
-You need to make 2 files: a design file and a configuration file.   
+You need to make 2 files: a design file and a configuration file. 
+
 ### Configuration file
 You can copy and modify the example from config/config.yaml.  
 
@@ -48,12 +58,11 @@ somatic_test_data_bam,/mnt/beegfs/userdata/m_aglave/long-reads-bulk/test/data_in
 
 > Notes:
 > - sample names mustn't contain special characters or spaces.
-> - bam file must have its bai index in the same directory than them.
+> - each bam file must be sorted, and have its bai index in the same directory than them.
 
 ### Run
-You need snakemake (via conda) and singularity (via module load).  
-Don't forget to change the path to your configuration file.
-
+You need snakemake (via conda) and singularity (via module load). They are already installed for you on Flamingo, just follow the example below.  
+Don't forget to change the version of the pipeline and the path to your configuration file.  
 Example of script:
 ```
 #!/bin/bash
@@ -61,16 +70,16 @@ Example of script:
 #SBATCH --job-name=LR_analysis
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=5G
+#SBATCH --mem=250M
 #SBATCH --partition=longq
 
-source /mnt/beegfs/software/conda/etc/profile.d/conda.sh
-conda activate /mnt/beegfs/userdata/m_aglave/.environnement_conda/my_conda_env_with_snakemake
+source /mnt/beegfs/software/miniconda/24.3.0/etc/profile.d/conda.sh
+conda activate /mnt/beegfs/pipelines/bigr_long-reads_bulk/<version>/envs/conda/snakemake
 module load singularity
 
 LR_pipeline="/mnt/beegfs/pipelines/bigr_long-reads_bulk/<version>/"
 
 snakemake --profile ${LR_pipeline}/profiles/slurm \
           -s ${LR_pipeline}/Snakefile \
-          --configfile path_to/my_configuration_file.yaml
+          --configfile <path_to/my_configuration_file.yaml>
 ```
