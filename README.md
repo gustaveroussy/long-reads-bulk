@@ -1,4 +1,4 @@
-# long-read-bulk
+# bigr_long-reads_bulk
 This pipeline allows to analyse bulk long-read DNA-seq from PromethION (Oxford Nanopore Technologies) to identify SNV and SV for germline and somatic data.
 For now, the input files are bam with their index (.bai) files.
 
@@ -10,8 +10,8 @@ The pipeline is localized here: /mnt/beegfs/pipelines/bigr_long-reads_bulk/<vers
 ### Installation outside GR or for new version
 #### Download pipeline
 ```
-cd  /mnt/beegfs/pipelines/big_long-reads_bulk/
-git clone https://github.com/gustaveroussy/long-reads-bulk.git 1.0.0
+cd  /mnt/beegfs/pipelines/bigr_long-reads_bulk/
+git clone https://github.com/gustaveroussy/bigr_long-reads_bulk.git 1.0.0
 ```
 #### Download environments
 ```
@@ -25,7 +25,7 @@ git lfs pull
 #### Install snakemake environment
 ```
 source /mnt/beegfs/software/miniconda/24.3.0/etc/profile.d/conda.sh
-conda env create -f /mnt/beegfs/pipelines/rna-editing/1.0.0/envs/conda/snakemake.yaml --prefix=/mnt/beegfs/pipelines/rna-editing/1.0.0/envs/conda/snakemake -y
+conda env create -f /mnt/beegfs/pipelines/bigr_long-reads_bulk/1.0.0/envs/conda/snakemake.yaml --prefix=/mnt/beegfs/pipelines/bigr_long-reads_bulk/1.0.0/envs/conda/snakemake -y
 ```
 
 ## Using
