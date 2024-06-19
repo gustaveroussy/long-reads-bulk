@@ -4,15 +4,15 @@ These rules make the control-quality of the alignment
 ##########################################################################
 """
 wildcard_constraints:
-    bam_name = '|'.join([x for x in BAMQC_BAM_NAME])
+    bam_name = '|'.join([x for x in BAM_NAME])
 
 """
 This rule makes the symbolic links of fastq files with the good sample name.
 """
 
 def symlink_rename_input_bam(wildcards):
-    index = BAMQC_BAM_NAME.index(wildcards.bam_name)
-    return BAMQ_ORIG_FILE[index]
+    index = BAM_NAME.index(wildcards.bam_name)
+    return ORIG_FILE[index]
 
 rule symlink_rename_bam:
     input:
@@ -25,12 +25,17 @@ rule symlink_rename_bam:
         mem_mb = (lambda wildcards, attempt: min(attempt * 256, 2048)),
         time_min = (lambda wildcards, attempt: min(attempt * 5, 50))
     run:
-        os.environ["TMPDIR"] = GLOBAL_TMP
-        sys.stderr.write("\t Create symbolic link: \n")
+        #sys.stderr.write("\t Create symbolic link: \n")
+        #sys.stderr.write("\t From :" + "\t" + str(input.bam) + "\n")
+        #sys.stderr.write("\t To :" + "\t" + str(output.bam_link) + "\n")
+        #os.symlink(str(input.bam), str(output.bam_link))
+        #os.symlink(str(input.bam + ".bai"), str(output.bam_link + ".bai"))
+        import shutil
+        sys.stderr.write("\t Copy file: \n")
         sys.stderr.write("\t From :" + "\t" + str(input.bam) + "\n")
         sys.stderr.write("\t To :" + "\t" + str(output.bam_link) + "\n")
-        os.symlink(str(input.bam), str(output.bam_link))
-
+        shutil.copy(str(input.bam), str(output.bam_link))
+        shutil.copy(str(input.bam + ".bai"), str(output.bam_link + ".bai"))
 
 
 """
@@ -38,8 +43,8 @@ This rule makes the qualimap
 """
 
 def qualimap_input_bam(wildcards):
-    index = BAMQC_BAM_NAME.index(wildcards.bam_name)
-    return BAMQ_SYMLINK_FILES[index]
+    index = BAM_NAME.index(wildcards.bam_name)
+    return SYMLINK_FILES[index]
 
 rule qualimap:
     input:
@@ -61,7 +66,7 @@ rule qualimap:
     shell:
         """
         res=$(({resources.mem_mb}/1000)) && \
-        qualimap bamqc -bam {input.bam_file} -outdir {OUTPUT_DIR}/bam_QC/qualimap/{wildcards.bam_name}/ --paint-chromosome-limits -nt {threads} --java-mem-size=$resG
+        qualimap bamqc -bam {input.bam_file} -outdir {OUTPUT_DIR}/bam_QC/qualimap/{wildcards.bam_name}/ --paint-chromosome-limits -nt {threads} --java-mem-size=${{res}}G
         
         """
 
@@ -71,34 +76,18 @@ This rule makes the mosdepth
 """
 
 def mosdepth_input_bam(wildcards):
-    index = BAMQC_BAM_NAME.index(wildcards.bam_name)
-    return BAMQ_SYMLINK_FILES[index]
+    index = BAM_NAME.index(wildcards.bam_name)
+    return SYMLINK_FILES[index]
 
 rule mosdepth:
     input:
         bam_file = mosdepth_input_bam
     output:
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q15.mosdepth.global.dist.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q15.mosdepth.region.dist.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q15.mosdepth.summary.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q15.per-base.bed.gz"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q15.per-base.bed.gz.csi"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q15.regions.bed.gz"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q15.regions.bed.gz.csi"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q20.mosdepth.global.dist.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q20.mosdepth.region.dist.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q20.mosdepth.summary.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q20.per-base.bed.gz"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q20.per-base.bed.gz.csi"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q20.regions.bed.gz"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_for_CNV_Q20.regions.bed.gz.csi"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}.mosdepth.global.dist.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}.mosdepth.region.dist.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}.mosdepth.summary.txt"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}.per-base.bed.gz"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}.per-base.bed.gz.csi"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}.regions.bed.gz"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}.regions.bed.gz.csi")
+        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_wgs_mode.mosdepth.global.dist.txt"),
+        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_wgs_mode.mosdepth.region.dist.txt"),
+        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_wgs_mode.mosdepth.summary.txt"),
+        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_wgs_mode.regions.bed.gz"),
+        os.path.normpath(OUTPUT_DIR + "/bam_QC/mosdepth/{bam_name}/{bam_name}_wgs_mode.regions.bed.gz.csi")
     threads:
         3
     resources:
@@ -120,8 +109,8 @@ This rule makes the mosdepth
 """
 
 def nanoplot_input_bam(wildcards):
-    index = BAMQC_BAM_NAME.index(wildcards.bam_name)
-    return BAMQ_SYMLINK_FILES[index]
+    index = BAM_NAME.index(wildcards.bam_name)
+    return SYMLINK_FILES[index]
 
 rule nanoplot_bam:
     input:
@@ -143,7 +132,6 @@ rule nanoplot_bam:
         os.path.normpath(OUTPUT_DIR + "/bam_QC/nanoplot/{bam_name}/{bam_name}_MappingQualityvsReadLength_dot.png"),
         os.path.normpath(OUTPUT_DIR + "/bam_QC/nanoplot/{bam_name}/{bam_name}_MappingQualityvsReadLength_kde.html"),
         os.path.normpath(OUTPUT_DIR + "/bam_QC/nanoplot/{bam_name}/{bam_name}_MappingQualityvsReadLength_kde.png"),
-        os.path.normpath(OUTPUT_DIR + "/bam_QC/nanoplot/{bam_name}/{bam_name}_NanoPlot_20240404_2323.log"),
         os.path.normpath(OUTPUT_DIR + "/bam_QC/nanoplot/{bam_name}/{bam_name}_NanoPlot-report.html"),
         os.path.normpath(OUTPUT_DIR + "/bam_QC/nanoplot/{bam_name}/{bam_name}_NanoStats.txt"),
         os.path.normpath(OUTPUT_DIR + "/bam_QC/nanoplot/{bam_name}/{bam_name}_Non_weightedHistogramReadlength.html"),
@@ -173,8 +161,9 @@ rule nanoplot_bam:
         time_min = (lambda wildcards, attempt: attempt * 720)
     shell:
         """
-        singularity exec --no-home -B {OUTPUT_DIR},{wildcards.bam_name} {SING_ENV_NANOPLOT} /
-        NanoPlot --threads {threads} --outdir {OUTPUT_DIR}/nanoplot/{wildcards.bam_name}/ --prefix {wildcards.bam_name}_ --N50 --tsv_stats --info_in_report --bam {input.bam_file}
+        TMP_DIR=$(mktemp -d -t lr_pipeline-XXXXXXXXXX) && \
+        singularity exec --contain -B {OUTPUT_DIR} -B ${{TMP_DIR}}:/tmp -B ${{TMP_DIR}}:${{TMPDIR}} {SING_ENV_NANOPLOT} \
+        NanoPlot --threads {threads} --outdir {OUTPUT_DIR}/bam_QC/nanoplot/{wildcards.bam_name}/ --prefix {wildcards.bam_name}_ --N50 --tsv_stats --info_in_report --bam {input.bam_file}
 
         """
 

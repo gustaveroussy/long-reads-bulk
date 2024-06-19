@@ -3,10 +3,14 @@ max_threads: 20
 
 # Input parameters
 input_format: bam #fastq, pod5, bam (aligned bam), ubam (unaligned bam)
-variant_calling_mode: somatic #germline or somatic
+variant_calling_mode: germline #germline or somatic
+
+# Output paramters
+output_dir: /mnt/beegfs/userdata/m_aglave/long-reads-bulk/test/data_output/
 
 # Select which parts of the pipeline should be run
 steps:
+  fastq_qc: false
   bam_qc: true
   fastq_qc: false
   snv_calling: true
@@ -14,13 +18,16 @@ steps:
   phasing: true
 
 # Path to design file
-design: /mnt/beegfs/userdata/m_aglave/long-reads-bulk/test/script/design_bam_somatic.tsv
+design: /mnt/beegfs/userdata/m_aglave/long-reads-bulk/test/script/design_bam_germline.tsv
 
 # Genome information
+#Note: genome_snpEff: GRCh38.109 doesn't exist in snpEff database
 references:
+  species: human
   genome_name: GRCh38.109
   genome: /mnt/beegfs/database/bioinfo/Index_DB/Fasta/Ensembl/GRCh38.109/homo_sapiens.GRCh38.109.fasta
   minimap2_index: /mnt/beegfs/database/bioinfo/Index_DB/Fasta/Ensembl/GRCh38.109/homo_sapiens.GRCh38.109.mmi
+  genome_snpEff: GRCh38.99
   dbsnp: /mnt/beegfs/database/bioinfo/Index_DB/dbNSFP/4.1/GRCh38/dbNSFP4.1a.txt.gz
   clinvar: /mnt/beegfs/database/bioinfo/Index_DB/ClinVar/GRCh38/clinvar_20230710.vcf.gz
 
@@ -34,5 +41,4 @@ snpsift:
 
 # ClairS parameters
 clairs:
-  singularity: /mnt/beegfs/pipelines/wgs_long_reads_pipeline/envs/singularity/clairs_latest.sif
   model: ont_r10_dorado_sup_5khz

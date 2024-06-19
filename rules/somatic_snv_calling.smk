@@ -4,19 +4,19 @@ These rules make the SNV Calling for somatic variants
 ##########################################################################
 """
 wildcard_constraints:
-    sample_id = '|'.join([x for x in BAMQC_SAMPLE_NAME])
+    sample_name = '|'.join([x for x in SAMPLE_NAME])
 
 """
 This rule makes the SNV Calling by clair3 with various models
 """
 
 def clairs_input_normal_bam(wildcards):
-    index = BAMQC_BAM_NAME.index(wildcards.sample_id + "_normal")
-    return BAMQ_SYMLINK_FILES[index]
+    index = BAM_NAME.index(wildcards.sample_name + "_normal")
+    return SYMLINK_FILES[index]
 
 def clairs_input_tumor_bam(wildcards):
-    index = BAMQC_BAM_NAME.index(wildcards.sample_id + "_tumor")
-    return BAMQ_SYMLINK_FILES[index]
+    index = BAM_NAME.index(wildcards.sample_name + "_tumor")
+    return SYMLINK_FILES[index]
 
 rule clairs:
     input:
@@ -24,8 +24,8 @@ rule clairs:
         tumor_bam_file = clairs_input_tumor_bam,
         fa_ref = config["references"]["genome"],
     output:
-        snv_vcf_file = os.path.normpath(OUTPUT_DIR + "/SNV_Calling/clairs/{sample_id}/{sample_id}_snv.vcf.gz"),
-        indel_vcf_file = os.path.normpath(OUTPUT_DIR + "/SNV_Calling/clairs/{sample_id}/{sample_id}_indel.vcf.gz")
+        snv_vcf_file = os.path.normpath(OUTPUT_DIR + "/SNV_Calling/clairs/{sample_name}/{sample_name}_snv.vcf.gz"),
+        indel_vcf_file = os.path.normpath(OUTPUT_DIR + "/SNV_Calling/clairs/{sample_name}/{sample_name}_indel.vcf.gz")
     threads:
         10
     resources:
@@ -36,8 +36,9 @@ rule clairs:
         model = config["clairs"]["model"]
     shell:
         """
-        singularity exec \
-          -B {OUTPUT_DIR},{params.path_fa_ref} \
+        TMP_DIR=$(mktemp -d -t lr_pipeline-XXXXXXXXXX) && \
+        singularity exec --contain \
+          -B {OUTPUT_DIR},{params.path_fa_ref} -B ${{TMP_DIR}}:${{TMPDIR}} \
           /mnt/beegfs/userdata/n_rabearivelo/containers/clairs_latest.sif \
           /opt/bin/run_clairs \
           --tumor_bam_fn {input.tumor_bam_file} \
@@ -45,10 +46,10 @@ rule clairs:
           --ref_fn {input.fa_ref} \
           --threads {threads} \
           --platform {params.model} \
-          --output_dir {OUTPUT_DIR} \
-          --output_prefix {wildcards.sample_id}_snv \
-          --indel_output_prefix {wildcards.sample_id}_indel \
-          --sample_name {wildcards.sample_id} \
+          --output_dir {OUTPUT_DIR}/SNV_Calling/clairs/{wildcards.sample_name} \
+          --output_prefix {wildcards.sample_name}_snv \
+          --indel_output_prefix {wildcards.sample_name}_indel \
+          --sample_name {wildcards.sample_name} \
           --include_all_ctgs \
           --remove_intermediate_dir \
           --conda_prefix /opt/conda/envs/clairs \

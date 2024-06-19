@@ -1,11 +1,28 @@
 import pandas as pd
 import os
 
-sys.stderr.write("\n############################################################ \n")
-sys.stderr.write("\n\n\t Bulk long reads pipeline \n\n")
 sys.stderr.write("\n############################################################ \n\n")
 
-### parameters ###################################################################################################################################
+sys.stderr.write("                           ++++++               \n")
+sys.stderr.write("                        ++++++++++++            \n")
+sys.stderr.write("                     ++++++++++++++++++         \n")
+sys.stderr.write("                  +++++++++++++++++++++++++     \n")
+sys.stderr.write("               ++++++++++++++++++++++++++++++   \n")
+sys.stderr.write("               ++++|  _ \(_)/ ____|  __ \++++   \n")
+sys.stderr.write("               ++++| |+) |_| |++++| |++) |+++   \n")
+sys.stderr.write("               ++++|  _ <| | |+|_ |  _  /++++   \n")
+sys.stderr.write("               ++++| |+) | | |++| | |+\ \++++   \n")
+sys.stderr.write("               ++++|____/|_|\_____|_|++\_\+++   \n")
+sys.stderr.write("               ++++++++++++++++++++++++++++++   \n")
+sys.stderr.write("                  +++++++++++++++++++++++++     \n")
+sys.stderr.write("                     +++++++++++++++++++        \n")
+sys.stderr.write("                        +++++++++++++           \n")
+sys.stderr.write("                           +++++++              \n")
+
+sys.stderr.write("\n                Bulk long reads pipeline      \n")
+
+sys.stderr.write("\nFor any question, sent an email to bigr@gustaveroussy.fr")
+sys.stderr.write("\n############################################################ \n\n")
 
 sys.stderr.write("\n#################### Setting Parameters ####################\n\n")
 
@@ -14,13 +31,20 @@ PIPELINE_DIR = workflow.snakefile
 PIPELINE_DIR = PIPELINE_DIR.replace("/Snakefile", "")
 
 #output directory (working directory)
-OUTPUT_DIR = os.getcwd()
+if "output_dir" in config:
+    OUTPUT_DIR = config["output_dir"]
+    sys.stderr.write("Output directory set to " + OUTPUT_DIR + ".\n")
+else:
+    OUTPUT_DIR = os.getcwd()
+    sys.stderr.write("No 'output_dir' found in config file, output directory set to " + OUTPUT_DIR + ".\n")
+
 
 #set enviroements and parameters of steps
 if config["steps"]["bam_qc"]:
   CONDA_ENV_QUALITYMAP = PIPELINE_DIR + "/envs/conda/qualimap.yaml"
   CONDA_ENV_MOSDEPTH = PIPELINE_DIR + "/envs/conda/mosdepth.yaml"
   SING_ENV_NANOPLOT = PIPELINE_DIR + "/envs/singularity/nanoplot_1.42.0.simg"
+  CONDA_ENV_MULTIQC = PIPELINE_DIR + "/envs/conda/multiqc.yaml"
   
 #if config["steps"]["fastq_qc"]:
 
@@ -29,18 +53,20 @@ if config["steps"]["snv_calling"]:
   SING_ENV_PEPPER_DEEPVARIANT = PIPELINE_DIR + "/envs/singularity/pepper_deepvariant_r0.8.sif"
   NAME_CLAIR3_MODEL = [os.path.basename(model) for model in config["clair3"]["model"]]
   SING_ENV_SNPEFF = PIPELINE_DIR + "/envs/singularity/snpeff_5.2c.simg"
-  SNPSIFT_FILTERS = config["snpsift"]["filters"]
-  SNPSIFT_FILTERS_NAMES = [filter.replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace(">", "sup").replace("<", "inf").replace("=", "eq") for filter in SNPSIFT_FILTERS] #to do: find a way to keep "()" if therer are more thant 2 parentheses. Ex: "((QUAL >= 10) && "(QUAL <= 30)) || (FILTER = 'PASS')""
+  SNPSIFT_FILTERS =  [filter.replace("'", "\'").replace('"', '\"') for filter in config["snpsift"]["filters"]]
+  SNPSIFT_FILTERS_NAMES = [filter.replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace(">", "sup").replace("<", "inf").replace("=", "eq") for filter in config["snpsift"]["filters"]] #to do: find a way to keep "()" if therer are more than 2 parentheses. Ex: "((QUAL >= 10) && (QUAL <= 30)) || (FILTER = 'PASS')"
 
 #if config["steps"]["sv_calling"]:
   CONDA_ENV_SNIFFLES = PIPELINE_DIR + "/envs/conda/sniffles.yaml"
+  CONDA_ENV_NANOMONSV = PIPELINE_DIR + "/envs/conda/nanomonsv.yaml"
 
 if config["steps"]["phasing"]:
   CONDA_ENV_WHATSHAP = PIPELINE_DIR + "/envs/conda/whatshap.yaml"
 
 
-
 sys.stderr.write("Parameters validated.\n")
+
+
 
 sys.stderr.write("\n################### Checking Design File ###################\n\n")
 
@@ -66,29 +92,25 @@ for i in range(0, len(design["sample_id"]), 1):
   if not len(set(design.iloc[i])) == len(design.iloc[i]): sys.exit("Error: All files have to be different! Check your design file.")
 
 #make the data structure
-BAMQC_SAMPLE_NAME =  []
-BAMQC_BAM_NAME =  []
-BAMQ_ORIG_FILE = []
-BAMQ_SYMLINK_FILES = []
+SAMPLE_NAME =  []
+BAM_NAME =  []
+ORIG_FILE = []
+SYMLINK_FILES = []
 for col in design.drop(columns="sample_id").columns.tolist():
   for line in range(0,len(design[col].tolist()),1):
-    BAMQC_SAMPLE_NAME.append(design["sample_id"].iloc[line])
-    BAMQ_ORIG_FILE.append(design[col].iloc[line])
+    SAMPLE_NAME.append(design["sample_id"].iloc[line])
+    ORIG_FILE.append(design[col].iloc[line])
     if col == "bam_file" : SUPPL_NAME=""
     if col == "bam_file_tumor": SUPPL_NAME="_tumor"
     if col == "bam_file_normal": SUPPL_NAME="_normal"
-    BAMQC_BAM_NAME.append(design["sample_id"].iloc[line] + SUPPL_NAME)
-    BAMQ_SYMLINK_FILES.append(OUTPUT_DIR + "/symlink_input/" + design["sample_id"].iloc[line] + SUPPL_NAME + ".bam")
+    BAM_NAME.append(design["sample_id"].iloc[line] + SUPPL_NAME)
+    SYMLINK_FILES.append(os.path.normpath(OUTPUT_DIR + "/symlink_input/" + design["sample_id"].iloc[line] + SUPPL_NAME + ".bam"))
     
-
-
-all_files=design.drop(columns="sample_id").stack().tolist()
-
+#Note: for germline SAMPLE_NAME = BAM_NAME
 
 
 sys.stderr.write("\n########################### Run ############################\n\n")
 
-### rule all ###################################################################################################################################
 
 include: "rules/rule_all.smk"
 rule all:
@@ -97,12 +119,12 @@ rule all:
     message:
         "Pipeline finished!"
 
-### real rules ###################################################################################################################################
 
 
 # Include rules files
 if config["steps"]["bam_qc"]:
     include: "rules/bam_qc.smk"
+    include: "rules/multiqc.smk"
 
 if config["steps"]["snv_calling"] and config["variant_calling_mode"] == "germline":
     include: "rules/germline_snv_calling.smk"
@@ -113,9 +135,12 @@ if config["steps"]["sv_calling"] and config["variant_calling_mode"] == "germline
 
 if config["steps"]["snv_calling"] and config["variant_calling_mode"] == "somatic":
     include: "rules/somatic_snv_calling.smk"
-#    include: "rules/snv_annotation.smk"
+    include: "rules/snv_annotation.smk"
 
-if config["steps"]["phasing"] and config["variant_calling_mode"] == "germline":
+if config["steps"]["sv_calling"] and config["variant_calling_mode"] == "somatic":
+    include: "rules/somatic_sv_calling.smk"
+
+if config["steps"]["phasing"]:
     include: "rules/phasing.smk"
 
 

@@ -4,15 +4,15 @@ These rules make the SV Calling for germline variants
 ##########################################################################
 """
 wildcard_constraints:
-    bam_name = '|'.join([x for x in BAMQC_BAM_NAME]),
+    bam_name = '|'.join([x for x in BAM_NAME]),
 
 """
 This rule makes the SV Calling by sniffles
 """
 
 def sniffles_input_bam(wildcards):
-    index = BAMQC_BAM_NAME.index(wildcards.bam_name)
-    return BAMQ_SYMLINK_FILES[index]
+    index = BAM_NAME.index(wildcards.bam_name)
+    return SYMLINK_FILES[index]
 
 rule sniffles:
     input:
@@ -39,7 +39,7 @@ This rule merges the SV Calling by sniffles for all samples
 """
 
 def merge_sniffles_input_snf(wildcards):
-    return [os.path.normpath(OUTPUT_DIR + "/SV_Calling/sniffles/" + x + "/" + x + "_SV.snf") for x in BAMQC_BAM_NAME]
+    return [os.path.normpath(OUTPUT_DIR + "/SV_Calling/sniffles/" + x + "/" + x + "_SV.snf") for x in BAM_NAME]
     
 rule merge_sniffles:
     input:
