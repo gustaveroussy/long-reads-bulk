@@ -10,22 +10,23 @@ The pipeline is localized here: /mnt/beegfs/pipelines/bigr_long-reads_bulk/<vers
 ### Installation outside GR or for new version
 #### Download pipeline
 ```
+VERSION="1.0.0"
 cd  /mnt/beegfs/pipelines/bigr_long-reads_bulk/
-git clone https://github.com/gustaveroussy/bigr_long-reads_bulk.git 1.0.0
+git clone https://github.com/gustaveroussy/bigr_long-reads_bulk.git ${VERSION}
 ```
 #### Download environments
 ```
 source /mnt/beegfs/software/miniconda/24.3.0/etc/profile.d/conda.sh
-conda create --prefix="/mnt/beegfs/userdata/m_aglave/.environnement_conda/git_lfs" git-lfs
-conda activate /mnt/beegfs/userdata/m_aglave/.environnement_conda/git_lfs
-cd 1.0.0
+conda create --prefix="/mnt/beegfs/userdata/<user_id>/.environnement_conda/git_lfs" git-lfs
+conda activate /mnt/beegfs/userdata/<user_id>/.environnement_conda/git_lfs
+cd ${VERSION}
 git lfs install
 git lfs pull
 ```
 #### Install snakemake environment
 ```
 source /mnt/beegfs/software/miniconda/24.3.0/etc/profile.d/conda.sh
-conda env create -f /mnt/beegfs/pipelines/bigr_long-reads_bulk/1.0.0/envs/conda/snakemake.yaml --prefix=/mnt/beegfs/pipelines/bigr_long-reads_bulk/1.0.0/envs/conda/snakemake -y
+conda env create -f /mnt/beegfs/pipelines/bigr_long-reads_bulk/${VERSION}/envs/conda/snakemake.yaml --prefix=/mnt/beegfs/pipelines/bigr_long-reads_bulk/${VERSION}/envs/conda/snakemake -y
 ```
 
 ## Using
@@ -48,11 +49,11 @@ sample_id,bam_file
 If you wante a somatic analysis:
 - **sample_id**: the sample name of you sample (it could be different that your fastq files).
 - **bam_file_tumor**: absolute path to the tumor bam file.
-- **bam_file_tumor**: absolute path to the normal bam file.
+- **bam_file_normal**: absolute path to the normal bam file.
 
 Example:
 ```
-sample_id,bam_file_tumor,bam_file_tumor
+sample_id,bam_file_tumor,bam_file_normal
 somatic_test_data_bam,/mnt/beegfs/userdata/m_aglave/long-reads-bulk/test/data_input/3700_R10_chr_22_filtered.bam,/mnt/beegfs/userdata/m_aglave/long-reads-bulk/test/data_input/2572_CD14_chr_22_filtered.bam
 ```
 
